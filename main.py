@@ -1,44 +1,41 @@
-import random
-
 import pygame
 
-WIDTH_WINDOW = 500
+FPS = 200
 
 
-class Bomb(pygame.sprite.Sprite):
-    image = pygame.image.load("data/bomb.png")
-    image_boom = pygame.image.load("data/boom.png")
+class Game(pygame.sprite.Sprite):
 
     def __init__(self, group):
         super().__init__(group)
-        self.image = Bomb.image
+        self.image = pygame.image.load("data/gameover.png")
         self.rect = self.image.get_rect()
-        self.rect.x = random.randrange(0, WIDTH_WINDOW - self.rect.width)
-        self.rect.y = random.randrange(0, WIDTH_WINDOW - self.rect.height)
-
-    def get_event(self, pos):
-        if self.rect.collidepoint(pos):
-            self.image = self.image_boom
 
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = WIDTH_WINDOW, WIDTH_WINDOW
+    pygame.display.set_caption('Game over')
+    size = width, height = 600, 300
     screen = pygame.display.set_mode(size)
-    pygame.display.set_caption('Boom them all')
-    group = pygame.sprite.Group()
-    for _ in range(20):
-        Bomb(group)
     running = True
+    clock = pygame.time.Clock()
+    all_sprites = pygame.sprite.Group()
+    game = Game(all_sprites)
+    game.rect.x = -width
+    size_game = game.image.get_size()
+    move_strange = True
+    gif_yandex_par = 15
+    pix = 1
     while running:
+        clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 pygame.quit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                for bomb in group:
-                    bomb.get_event(event.pos)
-        group.update()
-        screen.fill((255, 255, 255))
-        group.draw(screen)
+        if game.rect.x == width - size_game[0] - gif_yandex_par:
+            move_strange = False
+        if move_strange:
+            screen.fill((0, 0, 255))
+            all_sprites.draw(screen)
+            game.rect.x += pix
         pygame.display.flip()
+    pygame.quit()
