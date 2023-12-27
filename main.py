@@ -1,51 +1,43 @@
+import random
+
 import pygame
 
-FPS = 30
-VELOCITY = 10
+WIDTH_WINDOW = 500
 
 
-class Car(pygame.sprite.Sprite):
+class Bomb(pygame.sprite.Sprite):
+    image = pygame.image.load("data/bomb.png")
+    image_boom = pygame.image.load("data/boom.png")
+
     def __init__(self, group):
         super().__init__(group)
-        self.const_image = pygame.image.load('data/car.png')
-        self.image = self.const_image
+        self.image = Bomb.image
         self.rect = self.image.get_rect()
-        self.side = 'right'
+        self.rect.x = random.randrange(0, WIDTH_WINDOW - self.rect.width)
+        self.rect.y = random.randrange(0, WIDTH_WINDOW - self.rect.height)
 
-    def update(self):
-        if self.side == 'right':
-            if self.rect.right < 600:
-                self.rect.move_ip(VELOCITY, 0)
-            else:
-                self.side = 'left'
-                # flip_x, flip_y
-                # обновляем фотографию
-                self.image = pygame.transform.flip(self.const_image, True, False)
-        else:
-            if self.rect.left > 0:
-                self.rect.move_ip(-VELOCITY, 0)
-            else:
-                self.side = 'right'
-                self.image = self.const_image
+    def get_event(self, pos):
+        if self.rect.collidepoint(pos):
+            self.image = self.image_boom
 
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = 600, 95
+    size = width, height = WIDTH_WINDOW, WIDTH_WINDOW
     screen = pygame.display.set_mode(size)
-    pygame.display.set_caption('Машинка')
+    pygame.display.set_caption('Boom them all')
     group = pygame.sprite.Group()
-    car = Car(group)
-    car.rect.x = 0
-    car.rect.y = 0
-    clock = pygame.time.Clock()
+    for _ in range(20):
+        Bomb(group)
     running = True
     while running:
-        clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 pygame.quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for bomb in group:
+                    bomb.get_event(event.pos)
         group.update()
         screen.fill((255, 255, 255))
         group.draw(screen)
