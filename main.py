@@ -1,41 +1,53 @@
 import pygame
 
-FPS = 200
+all_sprites = pygame.sprite.Group()
+HEIGHT = 500
+WIDTH = 500
 
 
-class Game(pygame.sprite.Sprite):
-
-    def __init__(self, group):
-        super().__init__(group)
-        self.image = pygame.image.load("data/gameover.png")
+class Mountain(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(all_sprites)
+        self.image = pygame.image.load("data/mountains.png")
         self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.bottom = HEIGHT
+
+
+class Landing(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super().__init__(all_sprites)
+        self.image = pygame.image.load("data/pt.png")
+        self.rect = self.image.get_rect()
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+
+    def update(self):
+        # двигаемся только по вертикали
+        if not pygame.sprite.collide_mask(self, mountain):
+            self.rect = self.rect.move(0, 1)
 
 
 if __name__ == '__main__':
     pygame.init()
-    pygame.display.set_caption('Game over')
-    size = width, height = 600, 300
-    screen = pygame.display.set_mode(size)
-    running = True
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption('Высадка десанта')
     clock = pygame.time.Clock()
-    all_sprites = pygame.sprite.Group()
-    game = Game(all_sprites)
-    game.rect.x = -width
-    size_game = game.image.get_size()
-    move_strange = True
-    gif_yandex_par = 15
-    pix = 1
+    fps = 30
+    mountain = Mountain()
+    running = True
+    screen.fill((0, 0, 0))
     while running:
-        clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 pygame.quit()
-        if game.rect.x == width - size_game[0] - gif_yandex_par:
-            move_strange = False
-        if move_strange:
-            screen.fill((0, 0, 255))
-            all_sprites.draw(screen)
-            game.rect.x += pix
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                land = Landing(pos)
+        clock.tick(fps)
+        screen.fill((0, 0, 0))
+        all_sprites.draw(screen)
+        all_sprites.update()
         pygame.display.flip()
-    pygame.quit()
