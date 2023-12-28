@@ -1,53 +1,47 @@
+import random
+
 import pygame
 
-all_sprites = pygame.sprite.Group()
-HEIGHT = 500
-WIDTH = 500
+WIDTH_WINDOW = 500
 
 
-class Mountain(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__(all_sprites)
-        self.image = pygame.image.load("data/mountains.png")
+class Bomb(pygame.sprite.Sprite):
+    image = pygame.image.load("data/bomb.png")
+    image_boom = pygame.image.load("data/boom.png")
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = Bomb.image
         self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect.bottom = HEIGHT
+        while True:
+            self.rect.topleft = (
+                (random.randint(0, width - self.rect.width), random.randint(0, height - self.rect.height)))
+            if len(pygame.sprite.spritecollide(self, group, False)) == 1:
+                break
 
-
-class Landing(pygame.sprite.Sprite):
-    def __init__(self, pos):
-        super().__init__(all_sprites)
-        self.image = pygame.image.load("data/pt.png")
-        self.rect = self.image.get_rect()
-        self.mask = pygame.mask.from_surface(self.image)
-        self.rect.x = pos[0]
-        self.rect.y = pos[1]
-
-    def update(self):
-        # двигаемся только по вертикали
-        if not pygame.sprite.collide_mask(self, mountain):
-            self.rect = self.rect.move(0, 1)
+    def get_event(self, pos):
+        if self.rect.collidepoint(pos):
+            self.image = self.image_boom
 
 
 if __name__ == '__main__':
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption('Высадка десанта')
-    clock = pygame.time.Clock()
-    fps = 30
-    mountain = Mountain()
+    size = width, height = WIDTH_WINDOW, WIDTH_WINDOW
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption('Boom them all--2')
+    group = pygame.sprite.Group()
+    for _ in range(20):
+        Bomb(group)
     running = True
-    screen.fill((0, 0, 0))
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
                 pygame.quit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                land = Landing(pos)
-        clock.tick(fps)
-        screen.fill((0, 0, 0))
-        all_sprites.draw(screen)
-        all_sprites.update()
+                for bomb in group:
+                    bomb.get_event(event.pos)
+        group.update()
+        screen.fill((255, 255, 255))
+        group.draw(screen)
         pygame.display.flip()
